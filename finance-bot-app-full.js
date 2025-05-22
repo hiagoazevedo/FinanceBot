@@ -265,45 +265,35 @@ async function processMessage(user, message) {
 // Webhook para receber mensagens do WhatsApp
 app.post('/webhook', async (req, res) => {
   console.log('Body recebido:', req.body);
+
+  // Responder rapidamente com OK
+  res.status(200).send('OK');
+
   try {
-    // Verificar se a requisição é de fato do WhatsApp
-    if (req.body.object) {
-      // Responder rapidamente com OK
-      res.status(200).send('OK');
-      
-      if (req.body.entry && 
-          req.body.entry[0].changes && 
-          req.body.entry[0].changes[0] && 
-          req.body.entry[0].changes[0].value.messages &&
-          req.body.entry[0].changes[0].value.messages[0]) {
-        
-        const phoneNumberId = req.body.entry[0].changes[0].value.metadata.phone_number_id;
-        const from = req.body.entry[0].changes[0].value.messages[0].from; // número do remetente
-        const msgBody = req.body.entry[0].changes[0].value.messages[0].text.body;
-        
-        console.log(`Mensagem recebida de ${from}: ${msgBody}`);
-        
-        // Buscar ou criar usuário
-        let user = await userService.findOrCreateUser(from);
-        
-        // Processar a mensagem
-        const response = await processMessage(user, msgBody);
-        
-        // Enviar resposta de volta ao WhatsApp
-        await whatsAppService.sendMessage(from, response.message);
-        
-        // Se houver um gráfico e estivermos em produção, enviá-lo
-        if (response.chartPath && config.server.env === 'production') {
-          await whatsAppService.sendImage(from, response.chartPath);
-        }
-      }
-    } else {
-      // Não é uma requisição do WhatsApp
-      res.sendStatus(404);
+    // Extrair dados do Twilio
+    const from = req.body.From; // Ex: whatsapp:+5521964068620
+    const msgBody = req.body.Body; // Ex: /ajuda
+
+    if (!from || !msgBody) {
+      console.log('Dados insuficientes no body.');
+      return;
+    }
+
+    // Buscar ou criar usuário
+    let user = await userService.findOrCreateUser(from);
+
+    // Processar a mensagem
+    const response = await processMessage(user, msgBody);
+
+    // Enviar resposta de volta ao WhatsApp
+    await whatsAppService.sendMessage(from.replace('whatsapp:', ''), response.message);
+
+    // Se houver um gráfico e estivermos em produção, enviá-lo
+    if (response.chartPath && config.server.env === 'production') {
+      await whatsAppService.sendImage(from.replace('whatsapp:', ''), response.chartPath);
     }
   } catch (error) {
     console.error('Erro ao processar webhook:', error);
-    // Já enviamos 200 OK acima, então não enviamos erro aqui
   }
 });
 
