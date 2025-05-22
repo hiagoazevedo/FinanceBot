@@ -37,6 +37,12 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/temp', express.static(path.join(__dirname, 'temp')));
 
+// Middleware global de log
+app.use((req, res, next) => {
+  console.log(`Recebido ${req.method} em ${req.path}`);
+  next();
+});
+
 // Função para processar mensagens recebidas
 async function processMessage(user, message) {
   console.log('📨 Processando mensagem:', message);
@@ -720,4 +726,8 @@ app.listen(PORT, () => {
 
 app.get('/', (req, res) => {
   res.send('Finance Bot está rodando!');
+});
+
+app.all('*', (req, res) => {
+  res.status(404).send(`Rota não encontrada: ${req.method} ${req.path}`);
 }); 
