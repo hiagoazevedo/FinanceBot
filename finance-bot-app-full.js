@@ -34,6 +34,7 @@ const app = express();
 
 // Configurar middleware
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/temp', express.static(path.join(__dirname, 'temp')));
 
@@ -263,6 +264,7 @@ async function processMessage(user, message) {
 
 // Webhook para receber mensagens do WhatsApp
 app.post('/webhook', async (req, res) => {
+  console.log('Body recebido:', req.body);
   try {
     // Verificar se a requisição é de fato do WhatsApp
     if (req.body.object) {
