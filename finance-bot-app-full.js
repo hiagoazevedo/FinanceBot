@@ -14,6 +14,7 @@ const DateService = require('./services/dateService');
 const ExpenseValidator = require('./validators/expenseValidator');
 const HelpService = require('./services/helpService');
 const ChartConfigService = require('./services/chartConfigService');
+const twilioService = require('./services/twilioService');
 
 // Conectar ao MongoDB
 mongoose.connect(config.mongodb.uri, {
@@ -286,11 +287,11 @@ app.post('/webhook', async (req, res) => {
     const response = await processMessage(user, msgBody);
 
     // Enviar resposta de volta ao WhatsApp
-    await whatsAppService.sendMessage(from.replace('whatsapp:', ''), response.message);
+    await twilioService.sendMessage(from.replace('whatsapp:', ''), response.message);
 
     // Se houver um gráfico e estivermos em produção, enviá-lo
     if (response.chartPath && config.server.env === 'production') {
-      await whatsAppService.sendImage(from.replace('whatsapp:', ''), response.chartPath);
+      await twilioService.sendImage(from.replace('whatsapp:', ''), response.chartPath);
     }
   } catch (error) {
     console.error('Erro ao processar webhook:', error);
