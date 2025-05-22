@@ -716,4 +716,8 @@ app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Ambiente: ${config.server.env}`);
   console.log(`Interface de teste disponível em: http://localhost:${PORT}/test`);
+});
+
+app.get('/', (req, res) => {
+  res.send('Finance Bot está rodando!');
 }); 
