@@ -1,7 +1,8 @@
 module.exports = {
   server: {
     env: process.env.NODE_ENV || 'development',
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+    publicUrl: process.env.PUBLIC_URL
   },
   whatsapp: {
     apiUrl: process.env.WHATSAPP_API_URL || 'https://graph.facebook.com/v17.0',

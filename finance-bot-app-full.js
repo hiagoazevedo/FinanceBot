@@ -64,7 +64,7 @@ async function processMessage(user, message) {
     };
   }
 
-  if (message.toLowerCase().startsWith('/configurar')) {
+  if (normalizeText(message).startsWith('/orcamento') || normalizeText(message).startsWith('/orçamento')) {
     const configResult = await processConfigCommand(user, message);
     return {
       message: configResult,
@@ -120,12 +120,11 @@ async function processMessage(user, message) {
 
     try {
       const chartPath = await analyticsService.generatePieChart(expenses);
-      if (config.server.env === 'production') {
-        await whatsAppService.sendImage(user.phoneNumber, chartPath);
-      }
+      const publicUrl = `${config.server.publicUrl}/${chartPath.replace(/\\/g, '/')}`;
+      await twilioService.sendImage(user.phoneNumber.replace('whatsapp:', ''), publicUrl);
       return {
         message: '📊 Gráfico de pizza gerado com sucesso!',
-        chartPath
+        chartPath: publicUrl
       };
     } catch (error) {
       console.error('Erro ao gerar gráfico de pizza:', error);
@@ -152,12 +151,11 @@ async function processMessage(user, message) {
 
     try {
       const chartPath = await analyticsService.generateLineChart(expenses, user.monthlyBudget);
-      if (config.server.env === 'production') {
-        await whatsAppService.sendImage(user.phoneNumber, chartPath);
-      }
+      const publicUrl = `${config.server.publicUrl}/${chartPath.replace(/\\/g, '/')}`;
+      await twilioService.sendImage(user.phoneNumber.replace('whatsapp:', ''), publicUrl);
       return {
         message: '📊 Gráfico mensal gerado com sucesso!',
-        chartPath
+        chartPath: publicUrl
       };
     } catch (error) {
       console.error('Erro ao gerar gráfico mensal:', error);
@@ -198,12 +196,11 @@ async function processMessage(user, message) {
       });
 
       const chartPath = await analyticsService.generateBarChart(expensesByMonth);
-      if (config.server.env === 'production') {
-        await whatsAppService.sendImage(user.phoneNumber, chartPath);
-      }
+      const publicUrl = `${config.server.publicUrl}/${chartPath.replace(/\\/g, '/')}`;
+      await twilioService.sendImage(user.phoneNumber.replace('whatsapp:', ''), publicUrl);
       return {
         message: '📊 Gráfico comparativo dos últimos 3 meses gerado com sucesso!',
-        chartPath
+        chartPath: publicUrl
       };
     } catch (error) {
       console.error('Erro ao gerar gráfico comparativo:', error);
@@ -578,16 +575,22 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+function normalizeText(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[çÇ]/g, 'c').toLowerCase();
+}
+
 async function processConfigCommand(user, message) {
-  const parts = message.toLowerCase().split(' ');
-  if (parts.length < 3) {
+  const parts = message.split(' ');
+  if (parts.length < 2) {
     return '❌ *Formato inválido*\n\n' +
            'Use: /configurar orcamento VALOR\n\n' +
            'Exemplo: /configurar orcamento 2000';
   }
 
-  const command = parts[1];
-  const value = parseFloat(parts[2].replace(',', '.'));
+  // Normalizar comando e valor
+  const command = normalizeText(parts[1]);
+  let valueStr = parts[2] ? parts[2].replace('R$', '').replace('r$', '').replace(',', '.').trim() : '';
+  const value = parseFloat(valueStr);
 
   if (isNaN(value) || value <= 0) {
     return '❌ *Valor inválido*\n\n' +
@@ -596,6 +599,7 @@ async function processConfigCommand(user, message) {
 
   switch (command) {
     case 'orcamento':
+    case 'orcamento': // cobre também "orçamento" com acento
       await userService.updateUserBudget(user.phoneNumber, value);
       return '✅ *Orçamento Configurado*\n\n' +
              `💰 Valor: R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
