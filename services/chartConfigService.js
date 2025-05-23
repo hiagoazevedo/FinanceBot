@@ -76,17 +76,7 @@ class ChartConfigService {
               color: config.colors.text,
               padding: 15,
               usePointStyle: false,
-              boxWidth: 12,
-              generateLabels: function(chart) {
-                // Função personalizada para gerar labels mais robustas
-                const original = chart.legend.options.labels.generateLabels;
-                const labels = original.call(this, chart);
-                
-                return labels.map(label => ({
-                  ...label,
-                  text: normalizeLabel(String(label.text))
-                }));
-              }
+              boxWidth: 12
             }
           },
           tooltip: {
@@ -106,15 +96,6 @@ class ChartConfigService {
             bodyFont: {
               family: config.fonts.primary,
               size: config.fonts.sizes.tooltip
-            },
-            callbacks: {
-              // Callbacks padrão que serão sobrescritos pelos gráficos específicos
-              title: function(context) {
-                return normalizeLabel(String(context[0].label || ''));
-              },
-              label: function(context) {
-                return normalizeLabel(String(context.label || context.formattedValue || ''));
-              }
             }
           }
         },
@@ -161,47 +142,40 @@ class ChartConfigService {
       hoverBorderWidth: 3
     }];
     
-    config.options.plugins.tooltip = {
-      ...config.options.plugins.tooltip,
-      callbacks: {
-        label: (context) => {
-          const value = context.raw;
-          const percentage = (value / total * 100).toFixed(1);
-          const normalizedLabel = normalizeLabel(String(context.label));
-          const formattedValue = normalizeMoneyValue(value);
-          return `${normalizedLabel}: ${formattedValue} (${percentage}%)`;
-        },
-        title: (context) => {
-          return normalizeLabel(String(context[0].label));
-        }
+    // Configurar tooltips específicos para gráfico de pizza
+    config.options.plugins.tooltip.callbacks = {
+      label: (context) => {
+        const value = context.raw;
+        const percentage = (value / total * 100).toFixed(1);
+        const normalizedLabel = normalizeLabel(String(context.label));
+        const formattedValue = normalizeMoneyValue(value);
+        return `${normalizedLabel}: ${formattedValue} (${percentage}%)`;
+      },
+      title: (context) => {
+        return normalizeLabel(String(context[0].label));
       }
     };
     
-    config.options.plugins.legend = {
-      ...config.options.plugins.legend,
-      position: 'right',
-      labels: {
-        ...config.options.plugins.legend.labels,
-        generateLabels: (chart) => {
-          const data = chart.data;
-          if (data.labels.length && data.datasets.length) {
-            return data.labels.map((label, i) => {
-              const value = data.datasets[0].data[i];
-              const percentage = (value / total * 100).toFixed(1);
-              const normalizedLabel = normalizeLabel(String(label));
-              return {
-                text: `${normalizedLabel} (${percentage}%)`,
-                fillStyle: data.datasets[0].backgroundColor[i],
-                strokeStyle: data.datasets[0].borderColor,
-                lineWidth: data.datasets[0].borderWidth,
-                hidden: false,
-                index: i
-              };
-            });
-          }
-          return [];
-        }
+    // Configurar legenda específica para gráfico de pizza
+    config.options.plugins.legend.position = 'right';
+    config.options.plugins.legend.labels.generateLabels = (chart) => {
+      const data = chart.data;
+      if (data.labels.length && data.datasets.length) {
+        return data.labels.map((label, i) => {
+          const value = data.datasets[0].data[i];
+          const percentage = (value / total * 100).toFixed(1);
+          const normalizedLabel = normalizeLabel(String(label));
+          return {
+            text: `${normalizedLabel} (${percentage}%)`,
+            fillStyle: data.datasets[0].backgroundColor[i],
+            strokeStyle: data.datasets[0].borderColor,
+            lineWidth: data.datasets[0].borderWidth,
+            hidden: false,
+            index: i
+          };
+        });
       }
+      return [];
     };
     
     return config;
@@ -242,6 +216,7 @@ class ChartConfigService {
       }
     ];
     
+    // Configuração de scales para Chart.js 3.x
     config.options.scales = {
       y: {
         beginAtZero: true,
@@ -296,17 +271,14 @@ class ChartConfigService {
     };
     
     // Configurar tooltip específico para gráfico de linha
-    config.options.plugins.tooltip = {
-      ...config.options.plugins.tooltip,
-      callbacks: {
-        title: (context) => {
-          return `Dia ${context[0].label}`;
-        },
-        label: (context) => {
-          const value = context.raw;
-          const formattedValue = normalizeMoneyValue(value);
-          return `${context.dataset.label}: ${formattedValue}`;
-        }
+    config.options.plugins.tooltip.callbacks = {
+      title: (context) => {
+        return `Dia ${context[0].label}`;
+      },
+      label: (context) => {
+        const value = context.raw;
+        const formattedValue = normalizeMoneyValue(value);
+        return `${context.dataset.label}: ${formattedValue}`;
       }
     };
     
@@ -329,6 +301,7 @@ class ChartConfigService {
       borderSkipped: false
     }));
     
+    // Configuração de scales para Chart.js 3.x
     config.options.scales = {
       y: {
         beginAtZero: true,
@@ -383,18 +356,15 @@ class ChartConfigService {
     };
     
     // Configurar tooltip específico para gráfico de barras
-    config.options.plugins.tooltip = {
-      ...config.options.plugins.tooltip,
-      callbacks: {
-        title: (context) => {
-          return normalizeLabel(String(context[0].label));
-        },
-        label: (context) => {
-          const value = context.raw;
-          const formattedValue = normalizeMoneyValue(value);
-          const normalizedLabel = normalizeLabel(String(context.dataset.label));
-          return `${normalizedLabel}: ${formattedValue}`;
-        }
+    config.options.plugins.tooltip.callbacks = {
+      title: (context) => {
+        return normalizeLabel(String(context[0].label));
+      },
+      label: (context) => {
+        const value = context.raw;
+        const formattedValue = normalizeMoneyValue(value);
+        const normalizedLabel = normalizeLabel(String(context.dataset.label));
+        return `${normalizedLabel}: ${formattedValue}`;
       }
     };
     

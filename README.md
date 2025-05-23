@@ -68,7 +68,7 @@ Supermercado - R$ 120,00 #Alimentacao
 - **Express.js** - Framework web
 - **MongoDB** - Banco de dados
 - **Twilio** - API do WhatsApp
-- **Chart.js 4.4.0** - Geração de gráficos
+- **Chart.js 3.9.1** - Geração de gráficos
 - **chartjs-node-canvas** - Renderização server-side
 - **Moment.js** - Manipulação de datas
 - **Lodash** - Utilitários JavaScript
@@ -177,12 +177,38 @@ O projeto está configurado para deploy automático no Railway:
 - Melhorar a experiência de edição de despesas e comandos avançados
 - (Opcional) Integrar com serviço externo de imagens (S3, Cloudinary)
 
+## Compatibilidade e Versões
+
+### Chart.js 3.9.1
+O projeto utiliza Chart.js 3.9.1 devido à compatibilidade com `chartjs-node-canvas@4.1.6` no ambiente Railway com Node.js 20.x. Esta versão garante:
+
+- ✅ Compatibilidade total com Railway
+- ✅ Renderização estável de gráficos
+- ✅ Suporte completo a todas as funcionalidades implementadas
+
+### Dependências Principais
+```json
+{
+  "chart.js": "^3.9.1",
+  "chartjs-node-canvas": "^4.1.6",
+  "canvas": "^2.11.2",
+  "node": "20.x"
+}
+```
+
+### Teste das Configurações
+Para testar se os gráficos estão funcionando corretamente:
+```bash
+node test-chart.js
+```
+
 ## Observações
 
 - A pasta `/temp` não deve ser versionada (está no `.gitignore`), mas é criada automaticamente no Railway
 - Os gráficos são gerados com sistema de retry para maior confiabilidade
 - Configurações específicas para ambiente de produção aplicadas automaticamente
 - Normalização de texto implementada para evitar problemas de renderização
+- **Importante**: Versão do Chart.js fixada em 3.9.1 para compatibilidade com Railway
 
 ---
 
