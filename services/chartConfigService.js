@@ -38,8 +38,6 @@ function normalizeMoneyValue(value) {
 
 class ChartConfigService {
   static getBaseConfig(type, title) {
-    const config = chartConfig;
-    
     return {
       type,
       data: {
@@ -47,19 +45,19 @@ class ChartConfigService {
         datasets: []
       },
       options: {
-        responsive: config.performance.responsive,
-        maintainAspectRatio: config.performance.maintainAspectRatio,
-        animation: config.performance.animation,
+        responsive: false,
+        maintainAspectRatio: false,
+        animation: false,
         plugins: {
           title: {
             display: true,
             text: normalizeLabel(title),
             font: { 
-              size: config.fonts.sizes.title, 
-              family: config.fonts.primary,
+              size: 14, 
+              family: 'Arial, sans-serif',
               weight: 'bold'
             },
-            color: config.colors.text,
+            color: '#333333',
             padding: {
               top: 10,
               bottom: 20
@@ -70,10 +68,11 @@ class ChartConfigService {
             position: 'top',
             labels: {
               font: { 
-                family: config.fonts.primary,
-                size: config.fonts.sizes.legend
+                family: 'Arial, sans-serif',
+                size: 11,
+                weight: 'normal'
               },
-              color: config.colors.text,
+              color: '#333333',
               padding: 15,
               usePointStyle: false,
               boxWidth: 12
@@ -89,13 +88,14 @@ class ChartConfigService {
             cornerRadius: 6,
             displayColors: true,
             titleFont: {
-              family: config.fonts.primary,
-              size: config.fonts.sizes.tooltip,
+              family: 'Arial, sans-serif',
+              size: 12,
               weight: 'bold'
             },
             bodyFont: {
-              family: config.fonts.primary,
-              size: config.fonts.sizes.tooltip
+              family: 'Arial, sans-serif',
+              size: 11,
+              weight: 'normal'
             }
           }
         },
@@ -110,7 +110,7 @@ class ChartConfigService {
         elements: {
           arc: {
             borderWidth: 2,
-            borderColor: config.colors.border
+            borderColor: '#ffffff'
           },
           line: {
             borderWidth: 3
@@ -125,7 +125,10 @@ class ChartConfigService {
   }
 
   static getColors() {
-    return chartConfig.colors.primary;
+    return [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+    ];
   }
 
   static getPieChartConfig(labels, data, total) {
