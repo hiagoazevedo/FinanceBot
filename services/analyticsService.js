@@ -7,14 +7,49 @@ const path = require('path');
 const formatters = require('../utils/formatters');
 const ChartConfigService = require('./chartConfigService');
 const DateService = require('./dateService');
+const chartConfig = require('../config/chartConfig');
 
 class AnalyticsService {
   constructor() {
-    // Configuração do Chart.js
+    // Configuração robusta do Chart.js para ambiente de produção
     this.chartJSNodeCanvas = new ChartJSNodeCanvas({
-      width: 800,
-      height: 600,
-      backgroundColour: 'white'
+      width: chartConfig.rendering.width,
+      height: chartConfig.rendering.height,
+      backgroundColour: chartConfig.rendering.backgroundColour,
+      chartCallback: (ChartJS) => {
+        // Configurações globais para melhor renderização
+        ChartJS.defaults.font.family = chartConfig.fonts.primary;
+        ChartJS.defaults.font.size = chartConfig.fonts.sizes.legend;
+        ChartJS.defaults.color = chartConfig.colors.text;
+        
+        // Configurar plugins globais
+        ChartJS.defaults.plugins.legend.labels.usePointStyle = false;
+        ChartJS.defaults.plugins.legend.labels.boxWidth = 12;
+        ChartJS.defaults.plugins.legend.labels.padding = 10;
+        
+        // Configurações para melhor renderização de texto
+        ChartJS.defaults.elements.arc.borderWidth = 2;
+        ChartJS.defaults.elements.arc.borderColor = chartConfig.colors.border;
+        
+        // Configurar tooltips globalmente
+        ChartJS.defaults.plugins.tooltip.backgroundColor = 'rgba(0,0,0,0.8)';
+        ChartJS.defaults.plugins.tooltip.titleColor = '#ffffff';
+        ChartJS.defaults.plugins.tooltip.bodyColor = '#ffffff';
+        ChartJS.defaults.plugins.tooltip.borderColor = '#ffffff';
+        ChartJS.defaults.plugins.tooltip.borderWidth = 1;
+        
+        // Aplicar configurações de performance
+        if (chartConfig.production.disableAnimations) {
+          ChartJS.defaults.animation = false;
+        }
+        if (chartConfig.production.disableResponsive) {
+          ChartJS.defaults.responsive = false;
+          ChartJS.defaults.maintainAspectRatio = false;
+        }
+      },
+      plugins: {
+        modern: []
+      }
     });
 
     // Garantir que o diretório temp existe
@@ -27,7 +62,61 @@ class AnalyticsService {
     try {
       await fs.access(tempDir);
     } catch {
-      await fs.mkdir(tempDir);
+      await fs.mkdir(tempDir, { recursive: true });
+    }
+  }
+
+  // Função auxiliar para renderizar gráfico com retry e tratamento de erro
+  async renderChartWithRetry(config, fileName, maxRetries = 3) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📊 Tentativa ${attempt} de renderização do gráfico: ${fileName}`);
+        
+        // Validar configuração antes de renderizar
+        this.validateChartConfig(config);
+        
+        const image = await this.chartJSNodeCanvas.renderToBuffer(config);
+        const filePath = path.join(__dirname, '../temp', fileName);
+        await fs.writeFile(filePath, image);
+        
+        console.log(`✅ Gráfico renderizado com sucesso: ${fileName}`);
+        return `temp/${fileName}`;
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Erro na tentativa ${attempt} de renderização:`, error.message);
+        
+        if (attempt < maxRetries) {
+          // Aguardar antes da próxima tentativa
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    // Se todas as tentativas falharam, lançar o último erro
+    console.error(`❌ Falha em todas as ${maxRetries} tentativas de renderização`);
+    throw new Error(`Falha na renderização do gráfico após ${maxRetries} tentativas: ${lastError.message}`);
+  }
+
+  // Função para validar configuração do gráfico
+  validateChartConfig(config) {
+    if (!config || typeof config !== 'object') {
+      throw new Error('Configuração do gráfico inválida');
+    }
+    
+    if (!config.type) {
+      throw new Error('Tipo de gráfico não especificado');
+    }
+    
+    if (!config.data || !config.data.labels || !config.data.datasets) {
+      throw new Error('Dados do gráfico incompletos');
+    }
+    
+    // Validar se há dados suficientes
+    if (config.data.labels.length === 0) {
+      throw new Error('Nenhum dado disponível para o gráfico');
     }
   }
 
@@ -66,11 +155,7 @@ class AnalyticsService {
       total
     );
 
-    const image = await this.chartJSNodeCanvas.renderToBuffer(config);
-    const fileName = `pie-chart-${Date.now()}.png`;
-    const filePath = path.join(__dirname, '../temp', fileName);
-    await fs.writeFile(filePath, image);
-    return `temp/${fileName}`;
+    return await this.renderChartWithRetry(config, `pie-chart-${Date.now()}.png`);
   }
 
   // Gerar gráfico de linha de evolução mensal
@@ -93,11 +178,7 @@ class AnalyticsService {
       budget
     );
 
-    const image = await this.chartJSNodeCanvas.renderToBuffer(config);
-    const fileName = `line-chart-${Date.now()}.png`;
-    const filePath = path.join(__dirname, '../temp', fileName);
-    await fs.writeFile(filePath, image);
-    return `temp/${fileName}`;
+    return await this.renderChartWithRetry(config, `line-chart-${Date.now()}.png`);
   }
 
   // Gerar gráfico de barras comparativo
@@ -124,11 +205,7 @@ class AnalyticsService {
       datasets
     );
 
-    const image = await this.chartJSNodeCanvas.renderToBuffer(config);
-    const fileName = `bar-chart-${Date.now()}.png`;
-    const filePath = path.join(__dirname, '../temp', fileName);
-    await fs.writeFile(filePath, image);
-    return `temp/${fileName}`;
+    return await this.renderChartWithRetry(config, `bar-chart-${Date.now()}.png`);
   }
 
   // Gerar cor aleatória para gráficos
@@ -249,4 +326,4 @@ class AnalyticsService {
 }
 
 // Exportar a classe em vez da instância
-module.exports = new AnalyticsService(); 
+module.exports = new AnalyticsService();

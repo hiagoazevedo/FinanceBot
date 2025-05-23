@@ -1,80 +1,189 @@
-# FinanceBot
+# Finance Bot - WhatsApp
 
-Um chatbot de finanças pessoais integrado ao WhatsApp, desenvolvido em Node.js, Express e MongoDB, com deploy no Railway e integração via Twilio Sandbox.
+Bot de finanças pessoais para WhatsApp que permite registrar despesas, gerar relatórios e visualizar gráficos de gastos.
 
 ## Funcionalidades
-- Registro de despesas por mensagem no WhatsApp
-- Relatórios e gráficos (pizza, linha, barras) dos gastos
-- Configuração de orçamento mensal
-- Edição e remoção de despesas
-- Alertas de orçamento
-- Interface de teste web local
+
+- 📝 **Registro de Despesas**: Registre gastos com descrição, valor e categoria
+- 📊 **Relatórios Detalhados**: Relatórios mensais, semanais e anuais
+- 📈 **Gráficos Visuais**: Gráficos de pizza, linha e barras para visualização de dados
+- 💰 **Controle de Orçamento**: Defina orçamentos mensais e receba alertas
+- ✏️ **Edição de Despesas**: Edite descrição, valor, categoria e data
+- 🗑️ **Exclusão de Despesas**: Remova despesas registradas
+- 📋 **Consultas Rápidas**: Visualize últimas despesas e resumos
+
+## Melhorias Recentes - Gráficos Otimizados
+
+### Problemas Resolvidos
+- **✅ Labels e números bugados**: Implementada normalização robusta de texto
+- **✅ Caracteres especiais**: Remoção automática de acentos e caracteres problemáticos
+- **✅ Fontes não renderizadas**: Configuração de fontes padrão e fallbacks
+- **✅ Erros de renderização**: Sistema de retry com tratamento de erros
+- **✅ Performance melhorada**: Desabilitação de animações e configurações otimizadas
+
+### Novas Funcionalidades dos Gráficos
+- **🔄 Sistema de Retry**: Até 3 tentativas de renderização em caso de falha
+- **🎨 Normalização de Labels**: Remoção automática de caracteres especiais
+- **💰 Formatação Monetária Robusta**: Valores sempre exibidos corretamente
+- **⚙️ Configurações Centralizadas**: Arquivo de configuração para gráficos
+- **📊 Validação de Dados**: Verificação de dados antes da renderização
+- **🚀 Performance Otimizada**: Configurações específicas para ambiente de produção
+
+## Comandos Disponíveis
+
+### Registrar Despesa
+```
+Café da manhã - R$ 15,50 #Alimentacao
+Uber - R$ 25,00 #Transporte
+Supermercado - R$ 120,00 #Alimentacao
+```
+
+### Relatórios
+- `/relatorio` - Relatório mensal
+- `/relatorio semanal` - Relatório da última semana
+- `/relatorio anual` - Relatório do ano atual
+
+### Gráficos
+- `gráfico pizza` - Distribuição por categoria
+- `gráfico mensal` - Evolução mensal dos gastos
+- `comparar meses` - Comparativo dos últimos 3 meses
+
+### Orçamento
+- `/configurar orcamento R$ 1000` - Define orçamento mensal
+
+### Edição
+- `/editar ID "Nova descrição"` - Edita descrição
+- `/editar ID R$ 50,00` - Edita valor
+- `/editar ID #NovaCategoria` - Edita categoria
+- `/editar ID 25/12/2023` - Edita data
+
+### Outras Consultas
+- `/ultimas` - Mostra últimas 5 despesas
+- `/ajuda` - Mostra mensagem de ajuda
+- `/apagar ID` - Remove uma despesa
 
 ## Tecnologias Utilizadas
-- Node.js + Express
-- MongoDB (Atlas)
-- Twilio WhatsApp Sandbox
-- Railway (deploy cloud)
-- Chart.js + chartjs-node-canvas (geração de gráficos)
 
-## Como rodar/testar
+- **Node.js 20.x** - Runtime JavaScript
+- **Express.js** - Framework web
+- **MongoDB** - Banco de dados
+- **Twilio** - API do WhatsApp
+- **Chart.js 4.4.0** - Geração de gráficos
+- **chartjs-node-canvas** - Renderização server-side
+- **Moment.js** - Manipulação de datas
+- **Lodash** - Utilitários JavaScript
 
-### 1. Clonar o projeto e instalar dependências
+## Configuração
+
+### Variáveis de Ambiente
+```env
+MONGODB_URI=mongodb://localhost:27017/finance-bot
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=whatsapp:+14155238886
+PORT=3000
+PUBLIC_URL=https://your-app.railway.app
+```
+
+### Instalação
 ```bash
-git clone <repo-url>
-cd finance-bot
+# Instalar dependências
 npm install
+
+# Executar em desenvolvimento
+npm run dev
+
+# Executar em produção
+npm start
 ```
 
-### 2. Configurar variáveis de ambiente
-Crie um arquivo `.env` com:
+## Estrutura do Projeto
+
 ```
-MONGODB_URI=...
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=...
-TWILIO_WHATSAPP_NUMBER=...
-PUBLIC_URL=https://<seu-app>.up.railway.app
-PORT=8080
+finance-bot/
+├── config/
+│   ├── database.js          # Configuração do MongoDB
+│   └── chartConfig.js       # Configurações dos gráficos
+├── models/
+│   ├── User.js             # Modelo do usuário
+│   └── Expense.js          # Modelo da despesa
+├── services/
+│   ├── analyticsService.js  # Geração de gráficos e análises
+│   ├── chartConfigService.js # Configuração de gráficos
+│   ├── financeService.js    # Lógica de finanças
+│   ├── twilioService.js     # Integração com Twilio
+│   ├── dateService.js       # Manipulação de datas
+│   └── helpService.js       # Mensagens de ajuda
+├── utils/
+│   └── formatters.js        # Formatação de dados
+├── validators/
+│   └── expenseValidator.js  # Validação de despesas
+├── temp/                    # Gráficos temporários
+└── finance-bot-app-full.js # Aplicação principal
 ```
 
-### 3. Deploy no Railway
-- Suba o projeto para o GitHub
-- Conecte o repositório no Railway
-- Configure as variáveis de ambiente
-- O Railway irá buildar e rodar automaticamente
+## Configurações de Gráficos
 
-### 4. Configurar o Twilio Sandbox
-- Acesse https://www.twilio.com/console/sms/whatsapp/sandbox
-- Envie a mensagem de convite para o número do Sandbox
-- Configure o webhook para: `https://<seu-app>.up.railway.app/webhook` (método POST)
+### Arquivo de Configuração (`config/chartConfig.js`)
+```javascript
+const chartConfig = {
+  rendering: {
+    width: 800,
+    height: 600,
+    backgroundColour: 'white'
+  },
+  fonts: {
+    primary: 'Arial, Helvetica, sans-serif',
+    sizes: {
+      title: 18,
+      legend: 12,
+      axis: 11,
+      tooltip: 12
+    }
+  },
+  performance: {
+    animation: false,
+    responsive: false,
+    maxRetries: 3
+  }
+};
+```
 
-### 5. Testar no WhatsApp
-- Envie comandos como:
-  - `Almoço - R$ 15,50 #Alimentação`
-  - `/configurar orçamento 2000`
-  - `gráfico pizza`
-  - `/ultimas`
-  - `/ajuda`
+### Normalização de Texto
+- Remove acentos e caracteres especiais
+- Converte para ASCII seguro
+- Limita tamanho de labels
+- Formatação monetária robusta
 
-## O que já foi feito
-- Integração completa com Twilio Sandbox e Railway
-- Registro, edição e remoção de despesas flexível (aceita acentos, cedilha, variações de comando)
-- Geração de gráficos e envio automático da imagem pelo WhatsApp
-- Normalização de categorias e comandos para facilitar o uso
-- Middleware de logs para debug
-- Correção de problemas de deploy e variáveis de ambiente
+## Deploy
+
+### Railway
+O projeto está configurado para deploy automático no Railway:
+
+1. Conecte o repositório ao Railway
+2. Configure as variáveis de ambiente
+3. O deploy acontece automaticamente a cada push
+
+### Configurações de Produção
+- Gráficos otimizados para ambiente serverless
+- Sistema de retry para renderização
+- Logs detalhados para debugging
+- Configurações de performance aplicadas
 
 ## Problemas conhecidos / próximos passos
-- **Problema nas labels dos gráficos:** As legendas e textos dos gráficos ainda aparecem bugados (com caracteres estranhos ou ilegíveis). Precisa de ajuste fino na normalização e configuração de fontes do Chart.js para ambiente cloud.
-- Limite de mensagens do Twilio Sandbox pode impedir testes intensivos (aguardar reset diário ou usar outro número).
-- Melhorar a experiência de edição de despesas e comandos avançados.
-- (Opcional) Integrar com serviço externo de imagens (S3, Cloudinary) para maior robustez.
+
+- ✅ **Problema nas labels dos gráficos**: RESOLVIDO - Implementada normalização robusta e configurações otimizadas
+- Limite de mensagens do Twilio Sandbox pode impedir testes intensivos
+- Melhorar a experiência de edição de despesas e comandos avançados
+- (Opcional) Integrar com serviço externo de imagens (S3, Cloudinary)
 
 ## Observações
-- A pasta `/temp` não deve ser versionada (está no `.gitignore`), mas é criada automaticamente no Railway para armazenar os gráficos temporários.
-- O projeto está pronto para ser retomado a qualquer momento: basta fazer push/pull e o Railway reativa o serviço.
+
+- A pasta `/temp` não deve ser versionada (está no `.gitignore`), mas é criada automaticamente no Railway
+- Os gráficos são gerados com sistema de retry para maior confiabilidade
+- Configurações específicas para ambiente de produção aplicadas automaticamente
+- Normalização de texto implementada para evitar problemas de renderização
 
 ---
 
-**Bons estudos e até a próxima sessão de código!** 🚀 
+**Projeto otimizado e pronto para produção!** 🚀 
