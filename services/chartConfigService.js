@@ -54,10 +54,10 @@ class ChartConfigService {
             text: normalizeLabel(title),
             font: { 
               size: 14, 
-              family: 'Arial, sans-serif',
+              family: 'sans-serif',
               weight: 'bold'
             },
-            color: '#333333',
+            color: '#000000',
             padding: {
               top: 10,
               bottom: 20
@@ -68,11 +68,11 @@ class ChartConfigService {
             position: 'top',
             labels: {
               font: { 
-                family: 'Arial, sans-serif',
+                family: 'sans-serif',
                 size: 11,
                 weight: 'normal'
               },
-              color: '#333333',
+              color: '#000000',
               padding: 15,
               usePointStyle: false,
               boxWidth: 12
@@ -80,20 +80,20 @@ class ChartConfigService {
           },
           tooltip: {
             enabled: true,
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            backgroundColor: 'rgba(0,0,0,0.9)',
             titleColor: '#ffffff',
             bodyColor: '#ffffff',
             borderColor: '#ffffff',
             borderWidth: 1,
-            cornerRadius: 6,
+            cornerRadius: 4,
             displayColors: true,
             titleFont: {
-              family: 'Arial, sans-serif',
+              family: 'sans-serif',
               size: 12,
               weight: 'bold'
             },
             bodyFont: {
-              family: 'Arial, sans-serif',
+              family: 'sans-serif',
               size: 11,
               weight: 'normal'
             }
@@ -109,7 +109,7 @@ class ChartConfigService {
         },
         elements: {
           arc: {
-            borderWidth: 2,
+            borderWidth: 1,
             borderColor: '#ffffff'
           },
           line: {

@@ -1,24 +1,11 @@
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const { createRailwayChartCanvas } = require('./services/railway-fix');
 const fs = require('fs');
 
-// Configuração simples e robusta
-const chartJSNodeCanvas = new ChartJSNodeCanvas({
-  width: 800,
-  height: 600,
-  backgroundColour: 'white',
-  chartCallback: (ChartJS) => {
-    // Configurações básicas para produção
-    ChartJS.defaults.font.family = 'Arial, sans-serif';
-    ChartJS.defaults.font.size = 12;
-    ChartJS.defaults.color = '#333333';
-    ChartJS.defaults.animation = false;
-    ChartJS.defaults.responsive = false;
-    ChartJS.defaults.maintainAspectRatio = false;
-  }
-});
+// Usar configuração específica para Railway
+const chartJSNodeCanvas = createRailwayChartCanvas(800, 600);
 
 async function testChart() {
-  console.log('🧪 Testando renderização de gráfico simples...');
+  console.log('🧪 Testando renderização de gráfico com configuração Railway...');
   
   const config = {
     type: 'pie',
@@ -28,7 +15,7 @@ async function testChart() {
         data: [300, 150, 100, 80],
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
         borderColor: '#ffffff',
-        borderWidth: 2
+        borderWidth: 1
       }]
     },
     options: {
@@ -38,37 +25,37 @@ async function testChart() {
       plugins: {
         title: {
           display: true,
-          text: 'Teste de Grafico',
+          text: 'Teste de Grafico Railway',
           font: {
-            family: 'Arial, sans-serif',
+            family: 'sans-serif',
             size: 14,
             weight: 'bold'
           },
-          color: '#333333'
+          color: '#000000'
         },
         legend: {
           display: true,
           position: 'top',
           labels: {
             font: {
-              family: 'Arial, sans-serif',
+              family: 'sans-serif',
               size: 11
             },
-            color: '#333333'
+            color: '#000000'
           }
         },
         tooltip: {
           enabled: true,
-          backgroundColor: 'rgba(0,0,0,0.8)',
+          backgroundColor: 'rgba(0,0,0,0.9)',
           titleColor: '#ffffff',
           bodyColor: '#ffffff',
           titleFont: {
-            family: 'Arial, sans-serif',
+            family: 'sans-serif',
             size: 12,
             weight: 'bold'
           },
           bodyFont: {
-            family: 'Arial, sans-serif',
+            family: 'sans-serif',
             size: 11
           },
           callbacks: {
@@ -86,11 +73,15 @@ async function testChart() {
 
   try {
     const image = await chartJSNodeCanvas.renderToBuffer(config);
-    fs.writeFileSync('test-chart-output.png', image);
-    console.log('✅ Gráfico de teste gerado com sucesso: test-chart-output.png');
+    fs.writeFileSync('test-chart-railway.png', image);
+    console.log('✅ Gráfico de teste Railway gerado com sucesso: test-chart-railway.png');
     console.log('📊 Verifique o arquivo para confirmar se labels e valores estão visíveis');
+    console.log('🚀 Se este teste funcionar, o problema no Railway deve estar resolvido!');
   } catch (error) {
-    console.error('❌ Erro ao gerar gráfico de teste:', error.message);
+    console.error('❌ Erro ao gerar gráfico de teste Railway:', error.message);
+    if (error.message.includes('Fontconfig')) {
+      console.log('⚠️ Ainda há problema com fontconfig. Verifique a configuração.');
+    }
   }
 }
 

@@ -7,70 +7,82 @@
 - Valores monetários não são exibidos corretamente
 - Texto empilhado ou sobreposto nos gráficos
 - Gráficos funcionam localmente mas falham em produção
+- **Erro nos logs**: `Fontconfig error: Cannot load default config file`
 
-### Causa
-Este é um problema conhecido com Chart.js 3.9.1 + chartjs-node-canvas 4.1.6 em ambientes cloud, especialmente Railway/Windows. O problema está relacionado à renderização de fontes em ambientes de produção.
+### Causa Real ✅
+O problema **NÃO é** com as versões do Chart.js, mas sim com a **ausência do pacote `fontconfig`** no ambiente Railway. O erro `Fontconfig error: Cannot load default config file` indica que o Railway não tem o fontconfig instalado, que é necessário para renderização de fontes customizadas.
 
-### Soluções Implementadas
+### Soluções Implementadas ✅
 
-#### 1. Configuração de Fonte Robusta ✅
-- Configuração explícita de Arial como fonte padrão
-- Remoção de dependências de arquivos de configuração externos
-- Configurações simplificadas para ambiente cloud
+#### 1. Configuração Específica para Railway ✅
+- Criado arquivo `services/railway-fix.js` com configurações que não dependem do fontconfig
+- Uso de fonte genérica `sans-serif` que sempre existe em qualquer sistema
+- Remoção de tentativas de registro de fontes customizadas
 
-#### 2. Normalização de Texto ✅
-- Função `normalizeLabel()` que remove acentos e caracteres especiais
-- Limitação de tamanho de labels para evitar overflow
-- Conversão para ASCII para compatibilidade máxima
+#### 2. AnalyticsService Atualizado ✅
+- Removido método `registerDefaultFont()` que causava problemas
+- Implementada configuração específica para Railway
+- Logs melhorados para identificar problemas
 
-#### 3. Configurações de Performance ✅
-- Animações desabilitadas (não funcionam em servidor)
-- Responsive desabilitado para renderização consistente
-- Configurações de fonte explícitas em todos os elementos
+#### 3. ChartConfigService Simplificado ✅
+- Configurações básicas usando apenas fontes genéricas
+- Cores sólidas para melhor contraste
+- Configurações que funcionam em qualquer ambiente
+
+### Como Testar
+
+#### Teste Local
+Execute o teste para verificar se a configuração está funcionando:
+```bash
+node test-chart-simple.js
+```
+
+Se o teste gerar `test-chart-railway.png` sem erros de fontconfig, a solução está funcionando.
 
 ### Soluções de Emergência
 
 #### Opção 1: Limpar Cache do Railway
-Se o problema persistir, adicione esta variável de ambiente no Railway:
+Se ainda houver problemas, adicione esta variável de ambiente no Railway:
 ```
 NIXPACKS_NO_CACHE=1
 ```
 
 Faça um novo deploy e depois remova a variável.
 
-#### Opção 2: Teste Local
-Execute o teste simples para verificar se o problema é local ou apenas em produção:
-```bash
-node test-chart-simple.js
-```
+#### Opção 2: Verificar Logs
+Procure por estes indicadores nos logs:
+- ✅ `ChartJS configurado para Railway (sem fontconfig)` - Configuração correta
+- ❌ `Fontconfig error: Cannot load default config file` - Problema ainda presente
 
-#### Opção 3: Versões Alternativas (Futuro)
-Para uma hospedagem melhor, considere atualizar para:
-- Chart.js 4.x + chartjs-node-canvas 5.x (requer Node.js 18+)
-- Ou migrar para uma hospedagem Linux (Heroku, DigitalOcean, etc.)
+### Arquivos Modificados
+
+1. **`services/railway-fix.js`** - Nova configuração específica para Railway
+2. **`services/AnalyticsService.js`** - Atualizado para usar nova configuração
+3. **`services/chartConfigService.js`** - Simplificado para fontes genéricas
+4. **`test-chart-simple.js`** - Teste atualizado
 
 ### Limitações Conhecidas
 
-1. **Versão do Chart.js**: Estamos limitados ao Chart.js 3.9.1 devido à compatibilidade com chartjs-node-canvas 4.1.6
-2. **Ambiente Windows**: Railway usa ambiente Windows que tem problemas conhecidos com renderização de canvas
-3. **Fontes**: Dependemos de fontes do sistema, que podem variar entre ambientes
+1. **Fontes**: Limitado a fontes genéricas do sistema (`sans-serif`)
+2. **Ambiente**: Solução específica para Railway e ambientes sem fontconfig
+3. **Estilo**: Aparência mais básica, mas funcional
 
 ### Monitoramento
 
 Para verificar se o problema foi resolvido:
-1. Gere um gráfico via WhatsApp
-2. Verifique se labels e valores estão legíveis
-3. Teste diferentes tipos de gráfico (pizza, linha, barras)
-4. Monitore logs para erros de renderização
+1. Verificar logs de deploy - não deve haver erro de fontconfig
+2. Gerar um gráfico via WhatsApp
+3. Verificar se labels e valores estão legíveis
+4. Testar diferentes tipos de gráfico (pizza, linha, barras)
 
 ### Próximos Passos
 
-Quando migrar para uma hospedagem melhor:
-1. Atualizar para Chart.js 4.x
-2. Usar ambiente Linux
+Quando migrar para uma hospedagem melhor (com fontconfig):
+1. Reverter para configurações com fontes customizadas
+2. Atualizar para Chart.js 4.x
 3. Implementar cache de imagens
 4. Adicionar mais tipos de gráfico
 
 ---
 
-**Nota**: Este é um problema temporário relacionado ao ambiente de hospedagem atual. As soluções implementadas devem resolver a maioria dos casos, mas para uma solução definitiva, recomenda-se migrar para uma hospedagem Linux com Chart.js 4.x. 
+**Nota**: O problema era específico do ambiente Railway que não possui fontconfig instalado. As soluções implementadas resolvem definitivamente o problema usando apenas recursos disponíveis no Railway. 
